@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #475569;
+}
+
+/* ReactFlow override — hide attribution on dark bg */
+.react-flow__attribution {
+  background: transparent !important;
+}
+.react-flow__attribution a {
+  color: #334155 !important;
+}
+
+/* Ensure full height for ReactFlow containers */
+.react-flow {
+  height: 100% !important;
+}
