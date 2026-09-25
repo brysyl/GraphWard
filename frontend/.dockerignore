@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies (re-installed inside the container)
+node_modules/
+
+# Next.js build output (re-built inside the container)
+.next/
+out/
+
+# Test artefacts
+coverage/
+__tests__/
+jest.config.ts
+jest.setup.ts
+__mocks__/
+
+# Development / editor
+.eslintrc.json
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

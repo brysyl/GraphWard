@@ -1,0 +1,101 @@
+# GraphWard AI — Compose orchestration
+# Both services run as non-root users (uid/gid 1001) and expose health checks
+# that the compose engine uses to gate dependent service startup.
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Backend — FastAPI / uvicorn (Python 3.11-slim)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    image: graphward/backend:latest
+    container_name: graphward-backend
+    restart: unless-stopped
+
+    # Drop all Linux capabilities; the app needs none.
+    cap_drop:
+      - ALL
+
+    # Run as the non-root uid/gid created inside the image.
+    user: "1001:1001"
+
+    # Read-only root filesystem; only /tmp is writable (for patch sandboxing).
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,noexec,nosuid
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      PYTHONUNBUFFERED: "1"
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+    networks:
+      - graphward-net
+
+  # ---------------------------------------------------------------------------
+  # Frontend — Next.js standalone (node:20-alpine)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runtime
+    image: graphward/frontend:latest
+    container_name: graphward-frontend
+    restart: unless-stopped
+
+    cap_drop:
+      - ALL
+
+    user: "1001:1001"
+
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Point the browser-side API calls at the backend service.
+      NEXT_PUBLIC_API_URL: "http://backend:8000"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://localhost:3000
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+    networks:
+      - graphward-net
+
+networks:
+  graphward-net:
+    driver: bridge
