@@ -6,7 +6,7 @@ and captures a structured verification report with stderr stack traces.
 
 from __future__ import annotations
 
-import io
+import contextlib
 import logging
 import os
 import re
@@ -14,10 +14,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 import time
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -32,10 +30,10 @@ class StackFrame(BaseModel):
     file: str
     line: int
     function: str
-    code: Optional[str] = None
+    code: str | None = None
 
 
-class TestFailure(BaseModel):
+class FailureDetail(BaseModel):
     test_id: str
     outcome: str  # "FAILED" | "ERROR"
     message: str
@@ -52,8 +50,8 @@ class VerificationResult(BaseModel):
     tests_skipped: int
     duration_seconds: float
     patch_applied: bool
-    patch_error: Optional[str] = None
-    failures: list[TestFailure]
+    patch_error: str | None = None
+    failures: list[FailureDetail]
     raw_stdout: str
     raw_stderr: str
     regression_log: list[str] = Field(
@@ -101,10 +99,8 @@ def _apply_unified_diff(diff: str, working_dir: Path) -> tuple[bool, str]:
     except subprocess.TimeoutExpired:
         return False, "patch application timed out (>30s)"
     finally:
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(patch_file)
-        except OSError:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +116,7 @@ _SKIPPED_RE = re.compile(r"(\d+) skipped")
 _DURATION_RE = re.compile(r"in ([\d.]+)s")
 
 
-def _parse_pytest_output(stdout: str, stderr: str) -> dict:
+def _parse_pytest_output(stdout: str, stderr: str) -> dict[str, object]:
     """
     Parses pytest terminal output into structured counts and failure details.
     """
@@ -156,11 +152,11 @@ def _parse_pytest_output(stdout: str, stderr: str) -> dict:
     }
 
 
-def _extract_failures(stdout: str) -> list[TestFailure]:
+def _extract_failures(stdout: str) -> list[FailureDetail]:
     """
     Parses the FAILURES section of pytest's verbose output.
     """
-    failures: list[TestFailure] = []
+    failures: list[FailureDetail] = []
     # Split on short test separators
     sections = re.split(r"_{5,}", stdout)
 
@@ -188,13 +184,14 @@ def _extract_failures(stdout: str) -> list[TestFailure]:
                         function=fm.group(3),
                     )
                 )
-            elif in_traceback and raw.strip().startswith(("AssertionError", "Error", "Exception")):
-                message_lines.append(raw.strip())
-            elif not in_traceback:
+            elif (
+                in_traceback
+                and raw.strip().startswith(("AssertionError", "Error", "Exception"))
+            ) or not in_traceback:
                 message_lines.append(raw.strip())
 
         failures.append(
-            TestFailure(
+            FailureDetail(
                 test_id=test_id,
                 outcome="FAILED",
                 message="\n".join(filter(None, message_lines))[:2000],
@@ -330,8 +327,18 @@ class PatchVerifier:
             )
             return proc.stdout, proc.stderr, proc.returncode
         except subprocess.TimeoutExpired as exc:
-            stdout = (exc.stdout or b"").decode("utf-8", errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
-            stderr = (exc.stderr or b"").decode("utf-8", errors="replace") if isinstance(exc.stderr, bytes) else (exc.stderr or "")
-            return stdout, stderr + f"\n[TIMEOUT] Exceeded {self._timeout}s limit.", 124
+            raw_out = exc.stdout or b""
+            raw_err = exc.stderr or b""
+            out = (
+                raw_out.decode("utf-8", errors="replace")
+                if isinstance(raw_out, bytes)
+                else raw_out
+            )
+            err = (
+                raw_err.decode("utf-8", errors="replace")
+                if isinstance(raw_err, bytes)
+                else raw_err
+            )
+            return out, err + f"\n[TIMEOUT] Exceeded {self._timeout}s limit.", 124
         except Exception as exc:
             return "", f"[RUNNER ERROR] {exc}", 1

@@ -5,18 +5,19 @@ Exposes AST analysis and patch verification endpoints.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from core.ast_parser import ASTParser, ASTAnalysisResult
+from core.ast_parser import ASTAnalysisResult, ASTParser
 from core.verifier import PatchVerifier, VerificationResult
 
 # ---------------------------------------------------------------------------
@@ -77,6 +78,15 @@ class AnalyzeRequest(BaseModel):
         default=False,
         description="Whether to include test files in the AST scan.",
     )
+    workers: int | None = Field(
+        default=None,
+        ge=1,
+        le=64,
+        description=(
+            "Number of parallel worker processes for file parsing. "
+            "Defaults to the host CPU count."
+        ),
+    )
 
 
 class VerifyRequest(BaseModel):
@@ -136,8 +146,15 @@ async def analyze_ast(payload: AnalyzeRequest) -> ASTAnalysisResult:
         parser = ASTParser(
             max_depth=payload.max_depth,
             include_tests=payload.include_tests,
+            workers=payload.workers,
         )
-        result = parser.analyze(payload.target_directory)
+        # analyze() is CPU-bound (AST parsing + graph construction).
+        # Run it in the default ThreadPoolExecutor so the uvicorn event loop
+        # remains free to serve other requests during the scan.
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None, parser.analyze, payload.target_directory
+        )
         logger.info(
             "AST analysis complete — %d nodes, %d CVE flags",
             result.total_nodes,
