@@ -145,7 +145,7 @@ export default function TerminalHarness({
   const [cursor, setCursor] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const counterRef = useRef(0);
+  const runIdRef = useRef(0);
 
   // Blinking cursor
   useEffect(() => {
@@ -165,19 +165,20 @@ export default function TerminalHarness({
 
   const runSequence = useCallback(() => {
     clearTimeouts();
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
     setLogs([]);
     setCompleted(false);
     setRunning(true);
 
     const sequence = buildSequence(nodeCount, edgeCount, cveCount, testsTotal, testsPassed);
 
-    sequence.forEach((entry) => {
+    sequence.forEach((entry, index) => {
       const id = setTimeout(() => {
-        counterRef.current += 1;
         setLogs((prev) => [
           ...prev,
           {
-            id: counterRef.current,
+            id: runId * 1000 + index,
             timestamp: ts(),
             level: entry.level,
             message: entry.message,
@@ -202,7 +203,6 @@ export default function TerminalHarness({
   }, [runSequence, clearTimeouts]);
 
   const handleRerun = () => {
-    counterRef.current = 0;
     runSequence();
   };
 
