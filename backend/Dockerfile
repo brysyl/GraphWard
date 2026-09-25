@@ -58,13 +58,13 @@ COPY --chown=graphward:graphward . .
 
 USER graphward
 
-EXPOSE 8000
+EXPOSE 10000
 
 # ---- Health check ----
-# Polls the /health liveness endpoint every 30 s via the stdlib so no
+# Polls the /api/health liveness endpoint every 30 s via the stdlib so no
 # additional runtime dependency (curl / wget) is required.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c \
-        "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        "import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-10000}/api/health')"
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000} --workers 1"]
