@@ -224,6 +224,8 @@ const MOCK_RESULT: ASTAnalysisResult = {
 // Main dashboard page
 // ---------------------------------------------------------------------------
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+
 export default function DashboardPage() {
   const [result, setResult] = useState<ASTAnalysisResult>(MOCK_RESULT);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -233,7 +235,7 @@ export default function DashboardPage() {
 
   // Check API health on mount
   useEffect(() => {
-    fetch("http://localhost:8000/health")
+    fetch(`${API_BASE}/api/health`)
       .then((r) => r.ok ? setApiStatus("online") : setApiStatus("offline"))
       .catch(() => setApiStatus("offline"));
   }, []);
@@ -241,7 +243,7 @@ export default function DashboardPage() {
   const handleAnalyze = useCallback(async () => {
     setIsAnalyzing(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/ast/analyze", {
+      const res = await fetch(`${API_BASE}/api/v1/ast/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ target_directory: targetDir, max_depth: 10, include_tests: false }),
