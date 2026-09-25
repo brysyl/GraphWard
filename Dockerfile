@@ -20,6 +20,9 @@ COPY backend/ ./backend
 # Copy Next.js exported 'out' folder into place
 COPY --from=frontend-builder /app/frontend/out /app/frontend/out
 
+# Set PYTHONPATH so Python locates backend internal packages (e.g., 'core')
+ENV PYTHONPATH=/app/backend:${PYTHONPATH}
+
 # Expose Render dynamic port
 ENV PORT=10000
 EXPOSE 10000
