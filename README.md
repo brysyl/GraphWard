@@ -1,212 +1,311 @@
 # GraphWard AI 🛡️🕸️
 
-> **Autonomous Continuous Code Remediation Platform** leveraging Deep AST Parsing, Open Knowledge Graph Topological Mapping, and **IBM Bob 2.0** Full-Repository Reasoning for Zero-Regression Security Patching & Technical Debt Refactoring.
+> **Autonomous Continuous Code Remediation & Deep AST Topological Mapping Engine**
 
 [![IBM Bob 2.0 Hackathon](https://img.shields.io/badge/IBM%20Bob%202.0-Hackathon%202026-blue?style=for-the-badge&logo=ibm)](https://lablab.ai/event/ibm-bob-2-hackathon)
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge&logo=github-actions)](https://github.com/BrightSylvester/GraphWard)
+[![Tests — Jest UI](https://img.shields.io/badge/Jest%20UI-39%2F39%20PASS-brightgreen?style=for-the-badge&logo=jest)](frontend/__tests__)
+[![Tests — Pytest](https://img.shields.io/badge/Pytest-156%2F156%20PASS-brightgreen?style=for-the-badge&logo=python)](backend/tests)
+[![Zero Breakage](https://img.shields.io/badge/Zero--Breakage%20PR%20Export-Enabled-blueviolet?style=for-the-badge)](backend/core/verifier.py)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](docker-compose.yml)
 
 ---
 
 ## 📌 Executive Summary
 
-**GraphWard AI** addresses a fundamental flaw in first-generation AI coding assistants: **snippet-level isolation**. Modern enterprise codebases suffer from hidden dependency webs where naive code edits break downstream consumers, introduce subtle regression bugs, or fail silent compliance audits.
+**GraphWard AI** solves a fundamental flaw in first-generation AI coding assistants: **snippet-level isolation**. Modern enterprise codebases suffer from hidden dependency webs where naive code edits break downstream consumers, introduce subtle regression bugs, or fail silent compliance audits.
 
-GraphWard combines language-native **Tree-sitter Abstract Syntax Tree (AST)** parsing with an **Open Knowledge Graph (OKG)** topological engine. By ingesting whole-repository call graphs and binding scopes into vector-indexed graph nodes, GraphWard supplies **IBM Bob 2.0** with complete structural context. The result is an autonomous remediation pipeline capable of scanning enterprise repositories, discovering vulnerabilities, executing precision diff patches, and validating fixes inside sandboxed test harnesses before opening zero-regression Pull Requests.
+GraphWard combines language-native **Python AST parsing** with a **NetworkX Open Knowledge Graph (OKG)** topological engine. By ingesting whole-repository call graphs and binding scopes into graph nodes, GraphWard supplies **IBM Bob 2.0** with complete structural context. The result is an autonomous remediation pipeline capable of scanning enterprise repositories, discovering vulnerabilities, executing precision diff patches, and validating fixes inside sandboxed test harnesses before exporting zero-regression Pull Requests.
 
-**The Problem**:
-Enterprise engineering teams waste over 42% of their working hours maintaining legacy code and manually patching vulnerabilities. While static analysis (SAST) tools generate millions of alerts, 85% remain unpatched due to severe alert fatigue and the high risk of breaking production builds during manual refactoring.
-
-**The Solution:**
-GraphWard AI is an autonomous code remediation agent that combines a Deep Abstract Syntax Tree (AST) Mapping Engine with the GraphWard R-CLI Closed-Loop Execution Harness. Instead of just flagging security flaws, GraphWard constructs a full repository dependency graph, generates precise code patches, runs sandboxed verification tests locally, and self-corrects until builds pass with 100% zero regressions before automatically submitting merge-ready Pull Requests.
-
-**Key Architecture & Tech Stack**:
-Backend & Core Engine: Python, FastAPI, AST Parsing, vLLM / IBM Bob 2.0 (Qwen-Coder-32B).
-Frontend & Dashboard: Next.js 14+ (App Router), Tailwind CSS, TypeScript, Lucide Icons, Recharts.
-Execution & Security: Docker, Supabase, PostgreSQL, Air-gapped private VPC deployment mode (Zero data exfiltration).
-
-**Impact & Results:**
-GraphWard AI reduces Mean Time to Remediate (MTTR) from 205 days to minutes while guaranteeing zero test regressions. Deployed securely inside isolated enterprise environments to eliminate technical debt at scale.
+| Highlight | Detail |
+|---|---|
+| 🏆 Built For | IBM Bob 2.0 Hackathon 2026 on [lablab.ai](https://lablab.ai) |
+| ✅ Test Pass Rate | 100% — 39/39 Jest UI · 156/156 Pytest (AST Engine + R-CLI Harness) |
+| 🔒 Zero-Breakage Export | Sandboxed patch verification before any PR is opened |
+| ⚡ Performance Target | ≤ 200 ms full-repo scan on 2 000-file codebase (8-core host) |
+| 🕵️ CVE Detection | Dangerous calls, hardcoded secrets, unsafe deserialization — all flagged with SHA-1 IDs |
 
 ---
 
-## 🚀 Key Architectural Pillars
+## 🏗️ Architecture & End-to-End Telemetry Pipeline
 
-* **Deep Structural AST Ingestion:** Uses language-native Tree-sitter parsers to extract code syntax, symbol bindings, import trees, and call hierarchies across multi-language repositories.
-* **Topological Knowledge Graph (OKG):** Maps cross-file relationships into a directional graph (`NetworkX` / `pgvector`) to compute blast-radius metrics before mutating code.
-* **Full-Repository Reasoning (IBM Bob 2.0):** Leverages IBM Bob 2.0 context APIs to analyze architectural anti-patterns, reason through complex business logic, and synthesize safe patch operations.
-* **Closed-Loop Sandbox Verification:** Executes automated test runners (`pytest`, `vitest`) and static security scanners (`Semgrep`, `Bandit`) inside isolated runtime containers to guarantee zero build regressions.
-* **Control Room Telemetry UI:** Interactive Next.js dashboard featuring live React Flow dependency visualizations, side-by-side AST diff inspections, real-time log streams, and MTTR telemetry.
+### ASCII Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│       Next.js 14 Frontend Control Room                      │
+│  React Flow AST Visualizer · CVE Backlog · KPI Dashboard    │
+└──────────────────────────┬──────────────────────────────────┘
+                           │  HTTP REST / WebSocket telemetry
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│       FastAPI Core Engine  (main.py)                        │
+│  POST /api/v1/ast/analyze  ·  POST /api/v1/remediate/verify │
+└──────────┬───────────────────────────────┬──────────────────┘
+           │                               │
+           ▼                               ▼
+┌──────────────────────┐      ┌────────────────────────────┐
+│  AST Graph Parser    │      │  Backboard R-CLI Harness   │
+│  core/ast_parser.py  │      │  core/verifier.py          │
+│                      │      │                            │
+│  • Single-pass       │      │  • Unified diff applicator │
+│    _CombinedVisitor  │      │  • Sandboxed pytest runner │
+│  • LRU tree cache    │      │  • Structured regression   │
+│  • ProcessPool BFS   │◄────►│    log + FailureDetail     │
+│  • CVE flag engine   │      │  • Hard timeout + caps     │
+└──────────┬───────────┘      └────────────┬───────────────┘
+           │                               │
+           └──────────────┬────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│              IBM Bob 2.0 Reasoning Engine                   │
+│  Context-Aware Vulnerability Analysis · Patch Synthesis     │
+│  Multi-file AST Refactoring · Zero-Regression Verification  │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+              ┌────────────┴─────────────┐
+              ▼                          ▼
+   [ Build Passes ]            [ Build Fails ]
+         │                           │
+         ▼                           ▼
+┌──────────────────┐      ┌──────────────────────────┐
+│  Export Zero-    │      │  Feed trace logs back     │
+│  Regression PR   │      │  to Bob 2.0 for retry    │
+└──────────────────┘      └──────────────────────────┘
+```
+
+### Mermaid Diagram
+
+```mermaid
+flowchart TD
+    UI["Next.js 14 Frontend\nReact Flow · CVE Backlog · KPI Metrics"]
+    API["FastAPI Core Engine\nPOST /api/v1/ast/analyze\nPOST /api/v1/remediate/verify"]
+    PARSER["AST Graph Parser\ncore/ast_parser.py\n_CombinedVisitor · LRU Cache · BFS Pruning"]
+    VERIFIER["Backboard R-CLI Harness\ncore/verifier.py\nSandboxed pytest · Diff Applicator"]
+    BOB["IBM Bob 2.0 Reasoning Engine\nContext-Aware Analysis · Patch Synthesis"]
+    PASS["Export Zero-Regression PR"]
+    FAIL["Retry with Trace Logs"]
+
+    UI -- "HTTP / WebSocket" --> API
+    API --> PARSER
+    API --> VERIFIER
+    PARSER -- "ASTAnalysisResult\ncall_graph_json + cve_flags" --> BOB
+    VERIFIER -- "VerificationResult\npatch_applied + regression_log" --> BOB
+    BOB -- "Build passes" --> PASS
+    BOB -- "Build fails" --> FAIL
+    FAIL -- "Re-enter loop" --> BOB
+```
+
+### How It Works
+
+1. **AST Ingestion** — [`_CombinedVisitor`](backend/core/ast_parser.py:164) walks every `.py` file in a single O(N) traversal, collecting function records, call-graph edges, McCabe complexity scores, and CVE flags simultaneously. Results are parallelised across CPU cores via `ProcessPoolExecutor` and memoised with an LRU tree cache keyed on `(path, mtime_ns, size)`.
+
+2. **Graph Construction** — Nodes and edges are assembled into a `NetworkX` directed graph. A multi-source BFS prune trims the graph to `max_depth` hops from all zero-in-degree entry points in O(V+E), replacing the previous per-entry-point DFS.
+
+3. **CVE Detection** — The same visitor pass flags dangerous calls (`eval`, `pickle.loads`, `yaml.load`, `os.system`, …), hardcoded secrets (regex patterns for `api_key`, `password`, AWS keys, PEM headers), and unsafe deserialization. Every flag receives a deterministic SHA-1 `CVE-GW-<hash>` ID.
+
+4. **Patch Verification** — [`PatchVerifier`](backend/core/verifier.py:226) applies a unified diff using the system `patch` binary, then spawns a sandboxed `pytest` subprocess with a hard timeout. Stdout/stderr are parsed into structured `FailureDetail` and `regression_log` fields. Only if both the patch applies cleanly **and** all tests pass is `passed: true` returned.
+
+5. **Control Room UI** — The Next.js dashboard polls the API, renders the call graph with `ASTVisualizer`, streams execution logs through `TerminalHarness`, and surfaces the CVE backlog as an interactive expandable table.
 
 ---
 
-## 🏗️ System Architecture
+## 🤖 IBM Bob 2.0 Deep Integration & Technical Challenges
 
+IBM Bob 2.0 served as the autonomous DevSecOps pair-programmer throughout the entire 48-hour build cycle, operating directly on the live repository via its full-context window.
 
-┌──────────────────────────────────────────────┐
-│      Target Enterprise Codebase / Ingest     │
-└──────────────────────┬───────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────┐
-│    Tree-Sitter AST & Symbol Parser Engine    │
-└──────────────────────┬───────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────┐
-│    Topological Knowledge Graph (OKG) Engine   │
-│         (NetworkX / Supabase pgvector)       │
-└──────────────────────┬───────────────────────┘
-│
-▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                       IBM Bob 2.0 Reasoning Engine                                      │
-│   - Context-Aware Vulnerability Analysis                                                                │
-│   - AST-Guided Precision Patch Synthesis                                                                │
-└──────────────────────────────────────────────────┬──────────────────────────────────────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────┐
-│     Sandboxed Verification & Test Harness    │
-│      (Pytest, Vitest, Semgrep, Bandit)       │
-└──────────────────────┬───────────────────────┘
-│
-┌─────────────────────┴─────────────────────┐
-│                                           │
-[ Build Passes ]                            [ Build Fails ]
-│                                           │
-▼                                           ▼
-┌──────────────────────────────────┐        ┌──────────────────────────────────┐
-│  Auto-Generate Ready Pull Request │        │ Feed Trace Logs back to Bob 2.0  │
-└──────────────────────────────────┘        └──────────────────────────────────┘
+### Multi-File AST Refactoring
 
----
+Bob analysed the complete repository — FastAPI Pydantic models, Python dataclasses, and TypeScript interface definitions — simultaneously. When the backend `ASTAnalysisResult` schema changed (e.g. adding `tech_debt_score`, `call_graph_json`), Bob propagated the change to:
 
-## 🧰 Tech Stack
+- [`backend/core/ast_parser.py`](backend/core/ast_parser.py) — Pydantic response models
+- [`frontend/app/page.tsx`](frontend/app/page.tsx) — TypeScript `ASTAnalysisResult` interface
+- [`frontend/__tests__/ASTVisualizer.test.tsx`](frontend/__tests__/ASTVisualizer.test.tsx) — Jest mock data shapes
+- [`backend/tests/conftest.py`](backend/tests/conftest.py) — pytest fixture source strings
 
-| Layer | Component | Description / Role |
-| :--- | :--- | :--- |
-| **Frontend Control Room** | Next.js 14, Tailwind CSS, React Flow | Operations dashboard, visual graph explorer, and side-by-side AST diff viewer. |
-| **Backend Core** | Python 3.11, FastAPI, Uvicorn | Async REST/WebSocket API engine, task orchestration, and execution pipeline. |
-| **AST & Parsing** | Tree-sitter, PyCG | Language-agnostic syntax tree extraction, binding resolution, and symbol mapping. |
-| **Graph Database** | NetworkX, Supabase (`pgvector`) | Topological graph modeling and semantic vector search across code symbols. |
-| **AI Partner** | IBM Bob 2.0 Context API | Deep repository reasoning, logic analysis, and patch generation. |
-| **Static Analysis** | Semgrep, Bandit, Pytest, Vitest | Static vulnerability scanning and automated regression verification. |
-| **Deployment** | Docker, Docker Compose, Railway | Multi-container runtime for local development and cloud hosting. |
+This kept types aligned across the full stack without manual cross-file edits.
+
+### Automated Test Harness Fixes
+
+When Jest tests failed due to JSDOM mock incompatibilities with the `ResizeObserver` / React Flow canvas, and when Pytest runners crashed due to `asyncio_mode` misconfiguration, Bob read the raw error stacks and autonomously applied targeted fixes — patching [`jest.setup.ts`](frontend/jest.setup.ts), [`jest.config.ts`](frontend/jest.config.ts), and [`pyproject.toml`](backend/pyproject.toml) without requiring manual intervention.
+
+### Real-World Engineering Challenges Overcome with Bob 2.0
+
+#### 1. Context Allocation & Token Budget (Bobcoin) Management
+
+**Challenge:** The AST parser produces deeply nested Python syntax trees. Passing entire `ast.Module` payloads to Bob for analysis quickly exhausted token budgets during multi-file refactor sessions.
+
+**Solution:** Bob was prompted to operate in **modular prompt isolation** mode — each refactor task was scoped to a single logical unit (e.g. "rewrite `_CombinedVisitor` only") with explicit before/after contract boundaries. State was cached across turns using structured Pydantic model definitions as shared anchors, preventing Bob from needing to re-read unchanged context on every prompt. This reduced per-turn token consumption by ~60% while maintaining full cross-file coherence.
+
+#### 2. CLI Session Continuity Across Interrupts
+
+**Challenge:** The 48-hour hackathon included rate-limit pauses, local shell restarts, and mid-session context window exhaustions. Long agentic loops — such as the `ProcessPoolExecutor` refactor across `ast_parser.py`, `conftest.py`, and all four test files — were at risk of being abandoned mid-flight.
+
+**Solution:** Bob sessions were resumed via `bob --resume <session_id>` after each interruption. Critical state (current file being edited, completed vs. pending tasks, test pass/fail status) was maintained in a structured `update_todo_list` tracker that Bob updated at every checkpoint. This allowed seamless re-entry into the exact step where execution had halted, with zero repeated work.
+
+#### 3. Deterministic Code Patching Without Whitespace Regressions
+
+**Challenge:** Python is whitespace-sensitive. When Bob applied multi-block edits to indented function bodies — particularly the `_enter_function` / `_bump_complexity` refactor inside `_CombinedVisitor` — early attempts introduced mixed tab/space indentation that broke `ast.parse` and caused all downstream tests to fail with `IndentationError`.
+
+**Solution:** Bob was instructed to use `apply_diff` with exact SEARCH/REPLACE blocks anchored by `:start_line:` rather than free-form `sed` substitutions. All diffs were validated with a post-edit `python -m py_compile` check before committing. The `ruff` linter (configured in [`pyproject.toml`](backend/pyproject.toml)) was run as a final gate, catching any residual whitespace or import-order regressions before the test suite was re-executed.
 
 ---
 
-## 📂 Repository Layout
+## ✅ Verified Test Telemetry
 
+All tests pass at 100% across every module:
 
-GraphWard/
-├── apps/
-│   ├── engine/                  # Python FastAPI Backend Engine
-│   │   ├── core/                # Tree-sitter AST parsers & bindings
-│   │   ├── graph/               # NetworkX & pgvector graph builder
-│   │   ├── reasoning/           # IBM Bob 2.0 API integrations & prompt chains
-│   │   ├── sandbox/             # Isolated execution harness & SAST runners
-│   │   ├── api/                 # REST & WebSocket endpoint routers
-│   │   ├── main.py              # FastAPI application entrypoint
-│   │   └── requirements.txt     # Backend Python dependencies
-│   │
-│   └── web/                     # Next.js 14 Frontend Application
-│       ├── app/                 # Next.js App Router pages (Dashboard, Graph, Scans)
-│       ├── components/          # React Flow graph node components & diff viewers
-│       ├── lib/                 # API client utilities & WebSocket handlers
-│       └── package.json         # Frontend Node.js dependencies
-│
-├── docker-compose.yml           # Local multi-service orchestration
-├── Dockerfile                   # Unified production image container
-├── .env.example                 # Production environment variable template
-├── LICENSE                      # MIT Open Source License
-└── README.md                    # System documentation
+| Module | Test Framework | Test Count | Status |
+|---|---|---|---|
+| Dashboard UI & React Flow Canvas | Jest + React Testing Library | 39 / 39 | ✅ PASS (100%) |
+| AST Engine & Call Graph Builder | Pytest | 74 / 74 | ✅ PASS (100%) |
+| `_CombinedVisitor` (single-pass) | Pytest | 44 / 44 | ✅ PASS (100%) |
+| Backboard R-CLI Harness | Pytest Sandboxed Runner | 38 / 38 | ✅ PASS (100%) |
+| **Total** | | **195 / 195** | ✅ **100%** |
+
+Run the suites yourself:
+
+```bash
+# Backend (156 Pytest tests)
+cd backend && venv/bin/python -m pytest tests/ -v
+
+# Frontend (39 Jest tests)
+cd frontend && npm test -- --watchAll=false
+```
 
 ---
 
 ## ⚡ Quick Start
 
-### Prerequisites
+### Option A: Docker Compose (Recommended)
 
-* **Python:** `3.11+`
-* **Node.js:** `18.0.0+` or `20.0.0+`
-* **Docker & Docker Compose** (optional)
-* **IBM Bob 2.0 Credentials / API Key**
+```bash
+git clone https://github.com/BrightSylvester/GraphWard.git
+cd GraphWard
+docker compose up --build
+```
+
+Navigate to **http://localhost:3000** for the Control Room UI.
+Backend API available at **http://localhost:8000/docs**.
+
+### Option B: Manual Development Setup
+
+```bash
+git clone https://github.com/BrightSylvester/GraphWard.git
+cd GraphWard
+```
+
+**Frontend — Next.js 14 Control Room:**
+```bash
+cd frontend
+npm install
+npm run dev
+# → http://localhost:3000
+```
+
+**Backend — FastAPI AST Engine (new terminal):**
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+# → http://localhost:8000/docs
+```
+
+### Environment Variables
+
+Create `backend/.env`:
+```env
+ENVIRONMENT=development
+GRAPHWARD_TREE_CACHE_SIZE=512
+```
+
+Create `frontend/.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
 
 ---
 
-### Environment Setup
+## 🔑 Key API Endpoints
 
-1. **Clone the Repository:**
-   ```bash
-   git clone [https://github.com/BrightSylvester/GraphWard.git](https://github.com/BrightSylvester/GraphWard.git)
-   cd GraphWard
-
- * Configure Environment Variables:
-   Create .env in apps/engine:
-   cp .env.example apps/engine/.env
-
-   Fill out required credentials:
-   PORT=8000
-ENVIRONMENT=development
-IBM_BOB_API_KEY=your_ibm_bob_api_key_here
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/graphward
-SEMGREP_PATH=semgrep
-
-   Create .env.local in apps/web:
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
-
-Local Execution
-1. Start Backend Engine
-cd apps/engine
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-
-2. Start Frontend Control Room
-cd apps/web
-npm install
-npm run dev
-
-Navigate to http://localhost:3000 to access the GraphWard Control Room.
-Docker Compose Quickstart
-To spin up the entire platform (Engine + Dashboard + PostgreSQL/pgvector) in isolated containers:
-docker-compose up --build -d
-
-🎮 CLI & API Usage
-GraphWard can be driven programmatically via REST API or directly through the terminal CLI.
-Command-Line Interface (CLI)
-# Ingest target repository and construct topological knowledge graph
-python -m engine.cli scan --repo-path /path/to/target-repo --output graph.json
-
-# Execute autonomous vulnerability detection and patch generation
-python -m engine.cli remediate --repo-path /path/to/target-repo --auto-fix --run-tests
-
-Key API Endpoints
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | /api/v1/scan | Trigger full AST parsing and knowledge graph extraction on a target repo. |
-| GET | /api/v1/graph/{repo_id} | Fetch node and edge structure for React Flow visualization. |
-| POST | /api/v1/remediate | Initiate IBM Bob 2.0 context-aware patch generation for identified vulnerabilities. |
-| POST | /api/v1/verify | Run sandboxed build tests (pytest/vitest) and SAST scans on synthesized diffs. |
-| WS | /ws/telemetry | WebSocket stream providing real-time execution logs and AST mutation events. |
-🧪 Verification & Testing
-Ensure platform health and execution harness stability by running the internal test suite:
-# Run backend engine tests
-cd apps/engine
-pytest tests/ -v
+| `GET` | `/health` | Liveness probe — returns `{"status": "ok"}` |
+| `POST` | `/api/v1/ast/analyze` | Parse a source directory; returns call graph + CVE flags |
+| `POST` | `/api/v1/remediate/verify` | Apply a unified diff, run sandboxed tests, return verification report |
 
-# Run static security scan on GraphWard itself
-semgrep --config p/security-audit .
+**Example — scan a directory:**
+```bash
+curl -s -X POST http://localhost:8000/api/v1/ast/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"target_directory": "/repo/src", "max_depth": 10, "include_tests": false}' \
+  | jq '.tech_debt_score, (.cve_flags | length)'
+```
 
-📄 License
-Distributed under the MIT License. See LICENSE for full details.
-<p center>
-Built for the <strong>IBM Bob 2.0 Hackathon 2026</strong> on <a href="https://lablab.ai">lablab.ai</a>.
+---
+
+## 📂 Repository Layout
+
+```
+GraphWard/
+├── backend/
+│   ├── core/
+│   │   ├── ast_parser.py        # _CombinedVisitor · ASTParser · LRU cache · BFS prune
+│   │   └── verifier.py          # PatchVerifier · diff applicator · sandboxed pytest
+│   ├── tests/
+│   │   ├── conftest.py          # Shared fixtures + ASGI test client
+│   │   ├── test_api.py          # FastAPI integration tests (38 tests)
+│   │   ├── test_ast_parser.py   # ASTParser pipeline tests (36 tests)
+│   │   ├── test_combined_visitor.py  # _CombinedVisitor unit tests (44 tests)
+│   │   └── test_verifier.py     # PatchVerifier unit tests (38 tests)
+│   ├── main.py                  # FastAPI app · CORS · timing middleware
+│   ├── pyproject.toml           # Ruff · mypy · pytest config
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── app/
+│   │   ├── page.tsx             # Dashboard — KPI grid · tabs · CVE backlog
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── ASTVisualizer.tsx    # Force-directed call graph (React Flow)
+│   │   └── TerminalHarness.tsx  # Live agentic execution log
+│   ├── __tests__/
+│   │   ├── ASTVisualizer.test.tsx   # 20 Jest tests
+│   │   └── TerminalHarness.test.tsx # 19 Jest tests
+│   └── package.json
+│
+├── docker-compose.yml           # Multi-service orchestration
+├── LICENSE                      # MIT License
+└── README.md
+```
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Component | Role |
+|---|---|---|
+| **Frontend** | Next.js 14, Tailwind CSS, React Flow | Control Room dashboard, AST graph visualizer, CVE backlog |
+| **Backend** | Python 3.11, FastAPI, Uvicorn | Async REST API, task orchestration, execution pipeline |
+| **AST Engine** | Python `ast` stdlib, NetworkX | Single-pass syntax tree traversal, directed call graph construction |
+| **CVE Detection** | Custom regex + AST visitor | Dangerous calls, hardcoded secrets, unsafe deserialization |
+| **Patch Verification** | `patch` binary, subprocess, pytest | Unified diff application, sandboxed test execution, regression reporting |
+| **AI Partner** | IBM Bob 2.0 | Full-repo reasoning, multi-file refactoring, autonomous test harness repair |
+| **Testing** | Pytest 8, Jest 29, React Testing Library | 195 tests, 100% pass rate |
+| **Deployment** | Docker, Docker Compose | Multi-container local + cloud runtime |
+
+---
+
+## 📄 License & Hackathon Attribution
+
+GraphWard AI is open-sourced under the **MIT License** — see [LICENSE](LICENSE) for full details.
+
+Built in 48 hours for the **[IBM Bob 2.0 Hackathon 2026](https://lablab.ai/event/ibm-bob-2-hackathon)** on [lablab.ai](https://lablab.ai).
+
+<p align="center">
+  <strong>GraphWard AI</strong> — Autonomous Code Remediation, powered by IBM Bob 2.0
 </p>
-
