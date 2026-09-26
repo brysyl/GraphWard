@@ -246,7 +246,7 @@ The health check endpoint provides real-time backend status and infrastructure m
   "vpc": "Air-Gapped Private VPC
   "
 }
-
+---
 ## 🔑 Key API Endpoints
 
 | Method | Endpoint | Description |
