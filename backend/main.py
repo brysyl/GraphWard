@@ -25,7 +25,7 @@ def read_root():
 def health():
     return {"status": "ok"}
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 def api_health_check():
     return {
         "status": "online",
