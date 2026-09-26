@@ -243,8 +243,7 @@ The health check endpoint provides real-time backend status and infrastructure m
   "status": "online",
   "engine": "IBM Bob 2.0 / Qwen-Coder-32B",
   "service": "GraphWard AI Backend",
-  "vpc": "Air-Gapped Private VPC
-  "
+  "vpc": "Air-Gapped Private VPC"
 }
 
 ```
