@@ -1,7 +1,7 @@
 
 # 🤖 IBM Bob 2.0 Usage Statement
 
-> **Submission Deliverable** — *Enforced under 500 words*
+> **Submission Deliverable** —
 
 ---
 
