@@ -2,7 +2,6 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 app = FastAPI(title="GraphWard AI")
 
@@ -17,21 +16,13 @@ app.add_middleware(
 
 # --- API ENDPOINTS (Define BEFORE static mounting) ---
 
-@app.api_route("/", methods=["GET", "HEAD"])
-def read_root():
-    return {"status": "ok"}
-
-@app.api_route("/health", methods=["GET", "HEAD"])
-def health():
-    return {"status": "ok"}
-
 @app.api_route("/api/health", methods=["GET", "HEAD"])
 def api_health_check():
     return {
         "status": "online",
         "engine": "IBM Bob 2.0 / Qwen-Coder-32B",
         "service": "GraphWard AI Backend",
-        "vpc": "Air-Gapped Private VPC"
+        "vpc": "Air-Gapped Private VPC",
     }
 
 @app.get("/api/metrics")
@@ -42,16 +33,18 @@ def get_metrics():
         "active_cve_backlog": 14,
         "mttr_reduction_days": 191,
         "zero_breakage_pass_rate_pct": 100.0,
-        "active_ast_nodes": 2104
+        "active_ast_nodes": 2104,
     }
 
 # --- STATIC FRONTEND MOUNTING ---
 
-# Path to Next.js exported static build
-FRONTEND_OUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../frontend/out"))
+# Mount Next.js static build export at root
+frontend_build_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../frontend/out")
+)
 
-if os.path.exists(FRONTEND_OUT_DIR):
-    app.mount("/static", StaticFiles(directory=FRONTEND_OUT_DIR, html=True), name="static")
+if os.path.exists(frontend_build_path):
+    app.mount("/", StaticFiles(directory=frontend_build_path, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
