@@ -1,7 +1,7 @@
 
 # 🤖 IBM Bob 2.0 Usage Statement
 
-> **Submission Deliverable** —
+> **Submission Deliverable** 
 
 ---
 
