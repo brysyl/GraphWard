@@ -17,8 +17,16 @@ app.add_middleware(
 
 # --- API ENDPOINTS (Define BEFORE static mounting) ---
 
+@app.get("/")
+def read_root():
+    return {"status": "ok"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 @app.get("/api/health")
-def health_check():
+def api_health_check():
     return {
         "status": "online",
         "engine": "IBM Bob 2.0 / Qwen-Coder-32B",
@@ -43,19 +51,9 @@ def get_metrics():
 FRONTEND_OUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../frontend/out"))
 
 if os.path.exists(FRONTEND_OUT_DIR):
-    app.mount("/", StaticFiles(directory=FRONTEND_OUT_DIR, html=True), name="static")
-else:
-    @app.get("/")
-    def read_root():
-        return {"status": "backend online", "message": "Frontend build directory not found"}
+    app.mount("/static", StaticFiles(directory=FRONTEND_OUT_DIR, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 10000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
-# Render deployment trigger stamp
-
-@app.get("/")
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "service": "GraphWard AI Engine"}
