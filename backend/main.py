@@ -17,11 +17,11 @@ app.add_middleware(
 
 # --- API ENDPOINTS (Define BEFORE static mounting) ---
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"status": "ok"}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
 
