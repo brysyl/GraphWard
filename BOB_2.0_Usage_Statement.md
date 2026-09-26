@@ -22,8 +22,7 @@ By dispatching concurrent subagent tasks, Bob 2.0 executed parallel workflows:
 * **Subagent B:** Constructed custom node rendered components and control room UI states in Next.js.
 * **Subagent C:** Configured Docker build steps, Jest harness setups, and deployment configs.
 
-Without Bob 2.0’s deep codebase reasoning, implementing deterministic AST parsing alongside an interactive graph visualization UI would have taken weeks. Bob 2.0 reduced our manual dev effort by over 80%, demonstrating how AI partners drive complex software engineering tasks from concept to verified ex
-ecution.
+Without Bob 2.0’s deep codebase reasoning, implementing deterministic AST parsing alongside an interactive graph visualization UI would have taken weeks. Bob 2.0 reduced our manual dev effort by over 80%, demonstrating how AI partners drive complex software engineering tasks from concept to verified execution.
 
 
 ---
