@@ -230,6 +230,23 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ---
 
+### 📡 Health & Telemetry 
+
+The health check endpoint provides real-time backend status and infrastructure metadata. It explicitly supports `HEAD` requests to ensure seamless compatibility with UptimeRobot and other continuous monitoring services without triggering 405 routing errors.
+
+**Endpoint:** `/api/health`  
+**Supported Methods:** `GET`, `HEAD`  
+
+**Example Response:**
+```json
+{
+  "status": "online",
+  "engine": "IBM Bob 2.0 / Qwen-Coder-32B",
+  "service": "GraphWard AI Backend",
+  "vpc": "Air-Gapped Private VPC
+  "
+}
+
 ## 🔑 Key API Endpoints
 
 | Method | Endpoint | Description |
